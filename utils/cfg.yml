@@ -1,6 +1,0 @@
-fake_data_path: ./data/artificial_iot_time_series.parquet
-datalake:
-  endpoint: localhost:9000
-  bucket_name: datalake
-  access_key: d4RPi00GEPPJY9GS
-  secret_key: w3Crm4NyWMECdscIReKtpp1awOrlFTQT

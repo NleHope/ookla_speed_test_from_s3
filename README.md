@@ -1,27 +1,37 @@
-## Create data schema
-After putting your parquet file into `datalake` bucket, please execute `trino` container by the following command:
-```shell
-docker exec -ti datalake-trino bash
+Project: data-lake-with-minio (lab 1 cua AIDE 2)
+
+Mô tả
+- Pipeline đơn giản để ingest dữ liệu từ nguồn S3 public vào datalake local (MinIO). Có thể query bằng Trino/Hive và chạy job Spark (k8s hoặc local).
+
+Yêu cầu
+- Docker và `docker compose`
+- Python 3 và `pip` (nếu chạy job Python local)
+- (Tùy chọn) `minikube` và `kubectl` nếu muốn deploy Spark job lên Kubernetes
+
+Hướng dẫn nhanh
+1. Cho phép file chạy (nếu cần):
+
+```bash
+chmod +x run.sh
 ```
 
-When you are already inside the container, running:
-```shell
-psql -U k6 -d k6 -W 
-# Enter the password: k6
+2. Start services (MinIO, Trino, ... theo `docker-compose.yml`):
+
+```bash
+./run.sh up
 ```
 
-After that, run the following command to register a new schema for our data:
+3. Các lệnh hữu ích khác:
 
-```sql
-CREATE SCHEMA IF NOT EXISTS datalake.iot_time_series
-WITH (location = 's3://datalake/');
+- `./run.sh build`   : build image Spark từ `Dockerfile.spark`
+- `./run.sh k8s`     : deploy và chạy Spark job trên Minikube/K8s
+- `./run.sh ingest`  : chạy job ingest cục bộ bằng Python (`spark/jobs/ingest.py`)
+- `./run.sh export`  : chạy `utils/export_data_to_datalake.py` để xuất dữ liệu
+- `./run.sh down`    : dừng các service do `docker compose` tạo
 
-CREATE TABLE IF NOT EXISTS datalake.iot_time_series.data (
-  pressure DOUBLE,
-  velocity  DOUBLE,
-  speed DOUBLE
-) WITH (
-  external_location = 's3://datalake/iot_time_series/',
-  format = 'PARQUET'
-);
-```
+Ghi chú
+- Sau `./run.sh up`, MinIO thường truy cập được tại `http://localhost:9001` (kiểm tra `docker-compose.yml` để biết thông tin port/credential).
+- Nếu dùng Kubernetes, hãy đảm bảo `minikube` đang chạy: `minikube start`.
+
+Liên hệ
+- Nếu cần mở rộng hướng dẫn (ví dụ: credential MinIO, cấu hình Trino, ví dụ run Spark), báo tôi để tôi cập nhật thêm.

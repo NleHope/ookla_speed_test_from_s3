@@ -1,0 +1,93 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: ookla-ingest-job
+  namespace: default
+
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark-s3:latest
+  imagePullPolicy: IfNotPresent
+
+  mainApplicationFile: local:///opt/spark/app/ingest.py
+  
+  sparkVersion: "3.5.1"
+
+  sparkConf:
+    # Executor configuration
+    spark.executor.instances: "3"
+    
+    # MinIO S3 endpoint configuration
+    spark.hadoop.fs.s3a.endpoint: "http://host.minikube.internal:9000"
+    spark.hadoop.fs.s3a.access.key: "minio_access_key"
+    spark.hadoop.fs.s3a.secret.key: "minio_secret_key"
+    spark.hadoop.fs.s3a.path.style.access: "true"
+    spark.hadoop.fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    spark.hadoop.fs.s3a.connection.ssl.enabled: "false"
+    
+    # Anonymous access for public S3 (Ookla)
+    spark.hadoop.fs.s3a.aws.credentials.provider: "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
+    
+    # S3A optimizations for large files
+    spark.hadoop.fs.s3a.multipart.size: "104857600"  # 100MB
+    spark.hadoop.fs.s3a.fast.upload: "true"
+    spark.hadoop.fs.s3a.fast.upload.buffer: "disk"
+    spark.hadoop.fs.s3a.connection.maximum: "100"
+    
+    # Spark local directory
+    spark.kubernetes.driver.volumes.emptyDir.spark-local-dir-1.mount.path: "/tmp/spark-local"
+    spark.kubernetes.driver.volumes.emptyDir.spark-local-dir-1.sizeLimit: "5Gi"
+    spark.kubernetes.executor.volumes.emptyDir.spark-local-dir-1.mount.path: "/tmp/spark-local"
+    spark.kubernetes.executor.volumes.emptyDir.spark-local-dir-1.sizeLimit: "5Gi"
+
+  hadoopConf:
+    fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    fs.s3a.endpoint: "http://host.minikube.internal:9000"
+    fs.s3a.access.key: "minio_access_key"
+    fs.s3a.secret.key: "minio_secret_key"
+    fs.s3a.path.style.access: "true"
+    fs.s3a.connection.ssl.enabled: "false"
+    fs.s3a.aws.credentials.provider: "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
+  
+  deps:
+    jars:
+      - local:///opt/spark/jars/hadoop-aws-3.3.4.jar
+      - local:///opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar
+
+  driver:
+    cores: 1
+    memory: "1g"
+    labels:
+      version: 3.5.1
+    serviceAccount: spark
+    env:
+      - name: MINIO_ENDPOINT
+        value: "http://host.minikube.internal:9000"
+      - name: MINIO_ACCESS_KEY
+        value: "minio_access_key"
+      - name: MINIO_SECRET_KEY
+        value: "minio_secret_key"
+
+  executor:
+    cores: 1
+    instances: 2
+    memory: "1g"
+    labels:
+      version: 3.5.1
+    serviceAccount: spark
+    env:
+      - name: MINIO_ENDPOINT
+        value: "http://host.minikube.internal:9000"
+      - name: MINIO_ACCESS_KEY
+        value: "minio_access_key"
+      - name: MINIO_SECRET_KEY
+        value: "minio_secret_key"
+
+  restartPolicy:
+    type: OnFailure
+    onFailureRetries: 3
+    onFailureRetryInterval: 10
+    onSubmissionFailureRetries: 5
+    onSubmissionFailureRetryInterval: 20
