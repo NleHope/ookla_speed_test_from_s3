@@ -1,4 +1,11 @@
 Project: data-lake-with-minio (lab 1 cua AIDE 2)
+Architecture overview
+
+<img width="2124" height="899" alt="image" src="https://github.com/user-attachments/assets/9641d0bf-86e1-431d-bcae-00ff97f0bcd6" />
+
+To do: 
+- Add airflow vao de automate va orchestrate pipeline
+- Add Greate expectation va Datahub cho data validation va governance
 
 Mô tả
 - Pipeline đơn giản để ingest dữ liệu từ nguồn S3 public vào datalake local (MinIO). Có thể query bằng Trino/Hive và chạy job Spark (k8s hoặc local).
