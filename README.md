@@ -13,3 +13,10 @@ To do:
 
 Description:
 - ELT pipeline cho datalakehouse architecture
+
+
+
+Finished platform architecture:
+
+<img width="2439" height="1194" alt="image" src="https://github.com/user-attachments/assets/08e91ed7-42a9-4a90-9f28-ab5d51eea897" />
+
