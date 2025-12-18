@@ -8,5 +8,8 @@ To do:
 - Add data govern
 - Add data validation logic
 - Add table format
-Mô tả
+
+
+
+Description:
 - ELT pipeline cho datalakehouse architecture
