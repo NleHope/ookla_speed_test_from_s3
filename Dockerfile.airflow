@@ -1,0 +1,51 @@
+# Custom Airflow Image with kubectl and Docker CLI
+# This image extends the official Airflow image to add tools needed
+# for submitting Spark jobs to Kubernetes (Minikube) from Airflow
+
+FROM apache/airflow:3.1.5
+
+USER root
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+    chmod a+r /etc/apt/keyrings/docker.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce-cli && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install kubectl
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/
+
+# Install minikube CLI (for image loading)
+RUN curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && \
+    install minikube-linux-amd64 /usr/local/bin/minikube && \
+    rm minikube-linux-amd64
+
+# Create .kube directory for airflow user
+RUN mkdir -p /home/airflow/.kube && \
+    chown -R airflow:root /home/airflow/.kube
+
+# Add airflow user to docker group (GID 999 is typically docker group)
+RUN groupadd -g 999 docker || true && \
+    usermod -aG docker airflow
+
+USER airflow
+
+# Install Airflow providers for Kubernetes
+RUN pip install --no-cache-dir \
+    apache-airflow-providers-cncf-kubernetes==8.5.0
+
+WORKDIR /opt/airflow

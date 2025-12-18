@@ -5,7 +5,7 @@ services:
   trino:
     ports:
       - "8080:8080"
-    container_name: datalake-trino
+    container_name: ookla-trino
     image: "trinodb/trino:410"
     volumes:
       - ./trino/etc:/usr/lib/trino/etc:ro
@@ -17,7 +17,7 @@ services:
   # We use PostgreSQL to store Hive metadata about
   # how the datafile are mapped to schemas and tables
   metastore_db:
-    container_name: datalake-metastore-db
+    container_name: ookla-metastore-db
     image: postgres:11
     ports:
       - '5433:5432' # Access via Thrift protocol
@@ -27,7 +27,7 @@ services:
       POSTGRES_DB: metastore
 
   postgres_app:
-      container_name: datalake-postgres-app
+      container_name: ookla-postgres-app
       image: postgres:14
       ports:
         - "5435:5432"
@@ -38,7 +38,7 @@ services:
       volumes:
         - postgres_app_data:/var/lib/postgresql/data
   offline-fs:
-    container_name: datalake-offline-fs
+    container_name: ookla-offline-fs
     image: postgres:11
     ports:
       - '5434:5432' # Access via Thrift protocol
@@ -50,7 +50,7 @@ services:
   # Expose service to get metadata, which is a repository of metadata about the tables, 
   # such as database names, table names, schema and data location of each table
   hive-metastore:
-    container_name: datalake-hive-metastore
+    container_name: ookla-hive-metastore
     image: 'starburstdata/hive:3.1.2-e.18'
     ports:
       - '9083:9083' # Access via Thrift protocol
@@ -87,7 +87,7 @@ services:
   # Parquet files stored in MinIO object storage
   minio:
     image: minio/minio
-    container_name: datalake-minio
+    container_name: ookla-minio-lakehouse
     ports:
       - "9000:9000"
       - "9001:9001"

@@ -1,1 +1,11 @@
-pyspark
+pyspark==3.5.1
+delta-spark==3.2.0
+boto3>=1.28.0
+minio==7.1.16
+PyYAML>=6.0.1
+numpy
+pandas>=2.3.3
+deltalake
+pyarrow>=4.0.0
+reverse-geocoder>=1.5.1
+geopy>=2.3.0

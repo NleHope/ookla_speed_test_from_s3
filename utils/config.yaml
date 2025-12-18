@@ -1,10 +1,17 @@
-fake_data:
-  folder_path: ./data/pump
-  num_files: 3
+data:
+  folder_path: /media/nghia/G3 Plus/Work/ookla-internet-speed-dataset
+  
 
 datalake:
   endpoint: localhost:9000
-  bucket_name: iot-time-series
+  bucket_name: bronze
   folder_name: pump
+  quater_name: 2019-q1
   access_key: minio_access_key
   secret_key: minio_secret_key
+  sample_file: 2019-q1/2019-01-01_performance_mobile_tiles.parquet
+
+silver:
+  bucket_name: silver
+  folder_name: curated
+  quater_name: 2019-q1

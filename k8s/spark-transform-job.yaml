@@ -1,7 +1,7 @@
 apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 metadata:
-  name: ookla-ingest-job
+  name: ookla-transform-job
   namespace: default
 
 spec:
@@ -10,15 +10,23 @@ spec:
   mode: cluster
   image: spark-s3:latest
   imagePullPolicy: IfNotPresent
-
-  mainApplicationFile: local:///opt/spark/app/ingest.py
+  build: 
+    context: ../..
+    dockerfile: Dockerfile.spark
+  mainApplicationFile: local:///opt/spark/app/cleaning.py
+  arguments:
+    - "s3a://bronze/pump/2019-q1/"
+    - "s3a://silver/pump/2019-q1/"
   
   sparkVersion: "3.5.1"
 
   sparkConf:
     # Executor configuration
-    spark.executor.instances: "3"
-    
+    spark.driver.cores: "1"
+    spark.driver.memory: "2g"
+
+    spark.sql.shuffle.partitions: "8"
+
     # MinIO S3 endpoint configuration
     spark.hadoop.fs.s3a.endpoint: "http://host.minikube.internal:9000"
     spark.hadoop.fs.s3a.access.key: "minio_access_key"
@@ -27,20 +35,33 @@ spec:
     spark.hadoop.fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
     spark.hadoop.fs.s3a.connection.ssl.enabled: "false"
     
-    # Anonymous access for public S3 (Ookla)
-    spark.hadoop.fs.s3a.aws.credentials.provider: "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
-    
-    # S3A optimizations for large files
+    # S3A optimizations for transformation workload
     spark.hadoop.fs.s3a.multipart.size: "104857600"  # 100MB
     spark.hadoop.fs.s3a.fast.upload: "true"
     spark.hadoop.fs.s3a.fast.upload.buffer: "disk"
-    spark.hadoop.fs.s3a.connection.maximum: "100"
+    spark.hadoop.fs.s3a.connection.maximum: "20"
+    spark.hadoop.fs.s3a.threads.max: "10"
+    spark.hadoop.fs.s3a.attempts.maximum: "5"
     
-    # Spark local directory
+    # Adaptive query execution for better performance
+    spark.sql.adaptive.enabled: "true"
+    spark.sql.adaptive.coalescePartitions.enabled: "true"
+    spark.sql.adaptive.skewJoin.enabled: "true"
+    
+    # Memory and shuffle optimization
+    spark.memory.fraction: "0.6"
+    spark.memory.storageFraction: "0.3"
+
+    
+    # Python environment
+    spark.pyspark.python: "/usr/bin/python3"
+    spark.pyspark.driver.python: "/usr/bin/python3"
+    
+    # Kubernetes volumes for local scratch space
     spark.kubernetes.driver.volumes.emptyDir.spark-local-dir-1.mount.path: "/tmp/spark-local"
-    spark.kubernetes.driver.volumes.emptyDir.spark-local-dir-1.sizeLimit: "5Gi"
+    spark.kubernetes.driver.volumes.emptyDir.spark-local-dir-1.sizeLimit: "10Gi"
     spark.kubernetes.executor.volumes.emptyDir.spark-local-dir-1.mount.path: "/tmp/spark-local"
-    spark.kubernetes.executor.volumes.emptyDir.spark-local-dir-1.sizeLimit: "5Gi"
+    spark.kubernetes.executor.volumes.emptyDir.spark-local-dir-1.sizeLimit: "10Gi"
 
   hadoopConf:
     fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
@@ -49,7 +70,6 @@ spec:
     fs.s3a.secret.key: "minio_secret_key"
     fs.s3a.path.style.access: "true"
     fs.s3a.connection.ssl.enabled: "false"
-    fs.s3a.aws.credentials.provider: "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
   
   deps:
     jars:
@@ -58,9 +78,12 @@ spec:
 
   driver:
     cores: 1
-    memory: "1g"
+    coreLimit: "1200m"
+    memory: "2g"
     labels:
       version: 3.5.1
+      app: ookla-transform
+      layer: silver
     serviceAccount: spark
     env:
       - name: MINIO_ENDPOINT
@@ -69,13 +92,20 @@ spec:
         value: "minio_access_key"
       - name: MINIO_SECRET_KEY
         value: "minio_secret_key"
+      - name: PYSPARK_PYTHON
+        value: "/usr/bin/python3"
+      - name: PYTHONPATH
+        value: "/opt/spark/app"
 
   executor:
     cores: 1
+    coreLimit: "1100m"
     instances: 2
-    memory: "1g"
+    memory: "2g"
     labels:
       version: 3.5.1
+      app: ookla-transform
+      layer: silver
     serviceAccount: spark
     env:
       - name: MINIO_ENDPOINT
@@ -84,6 +114,10 @@ spec:
         value: "minio_access_key"
       - name: MINIO_SECRET_KEY
         value: "minio_secret_key"
+      - name: PYSPARK_PYTHON
+        value: "/usr/bin/python3"
+      - name: PYTHONPATH
+        value: "/opt/spark/app"
 
   restartPolicy:
     type: OnFailure
@@ -91,3 +125,10 @@ spec:
     onFailureRetryInterval: 10
     onSubmissionFailureRetries: 5
     onSubmissionFailureRetryInterval: 20
+  
+  # monitoring:
+  #   exposeDriverMetrics: true
+  #   exposeExecutorMetrics: true
+  #   prometheus:
+  #     jmxExporterJar: "/prometheus/jmx_prometheus_javaagent-0.17.0.jar"
+  #     port: 8090
