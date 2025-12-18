@@ -2,3 +2,8 @@
 .vscode
 __pycache__/
 *.pyc
+
+./airflow
+./logs/
+./data/
+./imgs/2019-01-01_performance_fixed_tiles.parquet
