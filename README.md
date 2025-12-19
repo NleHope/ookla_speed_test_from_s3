@@ -12,7 +12,7 @@ To do:
 
 
 Description:
-- ELT pipeline cho datalakehouse architecture
+- Data lakehouse for multi purpose use cases
 
 
 
