@@ -9,6 +9,30 @@ To do:
 - Add data validation logic
 - Add table format
 
+How to start:
+ensure your system has docker and minikube (k8s for local) and download spark components on minikube
+
+Download python libraries:
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+
+
+Run the docker compose file to start up the lakehouse:
+'''docker compose up -d'''
+
+start minikube cluster:
+minikube start
+
+build and push docker image into minikube:
+eval $(eval docker-env)
+docker build -t spark-s3:latest .
+
+Send spark job to k8s
+kubectl apply -f spark-rbac.yaml
+kubectl apply -f spark-job.yaml
+
 
 
 Description:
