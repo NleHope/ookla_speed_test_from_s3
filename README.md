@@ -9,31 +9,38 @@ To do:
 - Add data validation logic
 - Add table format
 
-How to start:
-ensure your system has docker and minikube (k8s for local) and download spark components on minikube
+# Local Lakehouse + Spark on Minikube
 
-Download python libraries:
+## Prerequisites
+Ensure your system has:
+- Docker
+- Minikube (local Kubernetes)
+- Python 3.12+
+
+Spark will be built into a Docker image and run on Minikube.
+
+---
+
+## Setup Python Environment
+
+Create and activate a virtual environment, then install dependencies:
+
+```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-
-
-Run the docker compose file to start up the lakehouse:
-'''docker compose up -d'''
-
-start minikube cluster:
+## Starting data lakehouse and minikube cluster
+```bash
+docker compose up -d
 minikube start
 
-build and push docker image into minikube:
-eval $(eval docker-env)
+eval $(minikube docker-env)
 docker build -t spark-s3:latest .
 
-Send spark job to k8s
 kubectl apply -f spark-rbac.yaml
-kubectl apply -f spark-job.yaml
 
-
+kubectl apply -f spark-transform-job.yaml
 
 Description:
 - Data lakehouse for multi purpose use cases
