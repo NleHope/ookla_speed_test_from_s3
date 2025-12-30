@@ -24,6 +24,7 @@ Requirements:
 """
 
 from airflow import DAG
+from airflow. providers.cncf.kubernetes. operators.pod import KubernetesPodOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.sensors.bash import BashSensor
@@ -48,7 +49,7 @@ dag = DAG(
     'ookla_speed_test_etl',
     default_args=default_args,
     description='ETL pipeline to process Ookla speed test data using Spark on Minikube',
-    schedule_interval='@daily',
+    schedule='@daily',
     catchup=False,
     tags=['spark', 'kubernetes', 'etl', 'ookla'],
 )

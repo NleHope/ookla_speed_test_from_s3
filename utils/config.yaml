@@ -1,5 +1,5 @@
 data:
-  folder_path: /media/nghia/G3 Plus/Work/ookla-internet-speed-dataset
+  folder_path: /mnt/nvme_data/Work/ookla-internet-speed-dataset
   
 
 datalake:
