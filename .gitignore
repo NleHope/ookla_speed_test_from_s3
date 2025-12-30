@@ -1,9 +1,60 @@
-.venv
-.vscode
-__pycache__/
-*.pyc
+# .gitignore for Airflow Kubernetes Deployment
 
-./airflow
-./logs/
-./data/
-./imgs/2019-01-01_performance_fixed_tiles.parquet
+# Secrets - NEVER commit these!
+secrets.yaml
+*-secret.yaml
+*.key
+*.pem
+.env
+.env.*
+
+# Sensitive configuration
+values-*.local.yaml
+*-credentials.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Airflow
+airflow.db
+airflow.cfg
+unittests.cfg
+airflow_login*
+logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Helm
+charts/
+*.tgz
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+temp/
+tmp/
+
+# Kubernetes
+kubeconfig*
+*.kubeconfig
