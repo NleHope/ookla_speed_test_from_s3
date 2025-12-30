@@ -1,44 +1,61 @@
-Project: data-lake-with-minio (lab 1 cua AIDE 2)
-Architecture overview
+THIS PROJECT IS STILL WIP
 
-<img width="2124" height="899" alt="image" src="https://github.com/user-attachments/assets/9641d0bf-86e1-431d-bcae-00ff97f0bcd6" />
+Project: modern data platform \n
+Commit 2
+Architecture overview
+<img width="1807" height="1040" alt="Screenshot from 2025-12-18 17-55-17" src="https://github.com/user-attachments/assets/cedb8ff5-c44f-485f-8788-442d1fd1b6e0" />
+
 
 To do: 
-- Add airflow vao de automate va orchestrate pipeline
-- Add Greate expectation va Datahub cho data validation va governance
+- Add data govern
+- Add data validation logic
+- Add table format
 
-Mô tả
-- Pipeline đơn giản để ingest dữ liệu từ nguồn S3 public vào datalake local (MinIO). Có thể query bằng Trino/Hive và chạy job Spark (k8s hoặc local).
+# Local Lakehouse + Spark on Minikube
 
-Yêu cầu
-- Docker và `docker compose`
-- Python 3 và `pip` (nếu chạy job Python local)
-- (Tùy chọn) `minikube` và `kubectl` nếu muốn deploy Spark job lên Kubernetes
+## Prerequisites
+Ensure your system has:
+- Docker
+- Minikube (local Kubernetes)
+- Python 3.12+
 
-Hướng dẫn nhanh
-1. Cho phép file chạy (nếu cần):
+Spark will be built into a Docker image and run on Minikube.
+
+---
+
+## Setup Python Environment
+
+Create and activate a virtual environment, then install dependencies:
+
 
 ```bash
-chmod +x run.sh
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-2. Start services (MinIO, Trino, ... theo `docker-compose.yml`):
-
+## Starting data lakehouse and minikube cluster
 ```bash
-./run.sh up
+docker compose up -d
+minikube start
 ```
+##Build docker image and push it to minikube cluster
+```bash
+eval $(minikube docker-env)
+docker build -t spark-s3:latest .
+```
+##Submit spark job on k8s for data processing
+```bash
+kubectl apply -f spark-rbac.yaml
 
-3. Các lệnh hữu ích khác:
+kubectl apply -f spark-transform-job.yaml
+```
+Description:
+- Data lakehouse for multi purpose use cases
 
-- `./run.sh build`   : build image Spark từ `Dockerfile.spark`
-- `./run.sh k8s`     : deploy và chạy Spark job trên Minikube/K8s
-- `./run.sh ingest`  : chạy job ingest cục bộ bằng Python (`spark/jobs/ingest.py`)
-- `./run.sh export`  : chạy `utils/export_data_to_datalake.py` để xuất dữ liệu
-- `./run.sh down`    : dừng các service do `docker compose` tạo
 
-Ghi chú
-- Sau `./run.sh up`, MinIO thường truy cập được tại `http://localhost:9001` (kiểm tra `docker-compose.yml` để biết thông tin port/credential).
-- Nếu dùng Kubernetes, hãy đảm bảo `minikube` đang chạy: `minikube start`.
 
-Liên hệ
-- Nếu cần mở rộng hướng dẫn (ví dụ: credential MinIO, cấu hình Trino, ví dụ run Spark), báo tôi để tôi cập nhật thêm.
+Finished platform architecture:
+
+<img width="2439" height="1194" alt="image" src="https://github.com/user-attachments/assets/08e91ed7-42a9-4a90-9f28-ab5d51eea897" />
+
