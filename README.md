@@ -20,36 +20,114 @@ To do:
 # Data lakehouse with data processing engine and orchestration on kubernetes
 
 ## Prerequisites
-Ensure your system has:
-- Docker
-- Kubernetes (Use kubernetes cluster created by Docker Desktop or Minikube or Kind)
-- Python 3.12
-- Helm
-- Airflow deployed on K8s with Helm 
-- Spark operator deployed on k8s with Helm
+- Docker & Docker Compose
+- Kubernetes (Docker Desktop/Minikube/Kind)
+- Python 3.12+
+- Helm 3.x
+- kubectl
 
----
+## Quick Start
 
-## Setup Python Environment
+### 1. Start Infrastructure
+```bash
+# Start data lakehouse (MinIO, Trino, Hive Metastore, Kafka, PostgreSQL)
+docker compose up -d
 
-Create and activate a virtual environment, then install dependencies:
+# Verify services
+docker ps
+```
 
+### 2. Setup Kubernetes Cluster
+```bash
+# For Docker Desktop: Enable Kubernetes in settings
 
+# For Minikube:
+minikube start --cpus=4 --memory=8192
+
+# Verify cluster
+kubectl cluster-info
+```
+
+### 3. Deploy Airflow on Kubernetes
+```bash
+# Add Airflow Helm repo
+helm repo add apache-airflow https://airflow.apache.org
+helm repo update
+
+# Create namespace
+kubectl create namespace airflow
+
+# Install Airflow
+helm install dev-release apache-airflow/airflow --namespace airflow
+
+# Wait for pods to be ready
+kubectl get pods -n airflow -w
+
+# Access Airflow UI (in separate terminal)
+kubectl port-forward svc/dev-release-webserver 8080:8080 --namespace airflow
+# Default credentials: admin / admin
+```
+
+### 4. Setup Spark on Kubernetes
+```bash
+# Install Spark Operator
+helm repo add spark-operator https://googlecloudplatform.github.io/spark-on-k8s-operator
+helm repo update
+
+kubectl create namespace spark-operator
+helm install spark-operator spark-operator/spark-operator --namespace spark-operator
+
+# Apply RBAC for Spark jobs
+kubectl apply -f k8s_rbac/spark-rbac.yaml
+kubectl apply -f k8s_rbac/airflow-rbac.yaml
+```
+
+### 5. Setup Python Environment (Optional - for local testing)
 ```bash
 python3.12 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Starting data lakehouse and kubernetes cluster
+### 6. Initialize MinIO Buckets
 ```bash
-docker compose up -d
+# Access MinIO UI: http://localhost:9001
+# Login: minio_access_key / minio_secret_key
+# Create buckets: bronze, silver, gold
 ```
-Go to docker desktop and create a K8s cluster
 
+### 7. Run ETL Pipeline
+```bash
+# Access Airflow UI: http://localhost:8080
+# Enable and trigger DAG: ookla_etl
+# Monitor Spark jobs: kubectl get sparkapplications -n airflow
+```
 
+## Services Access
+- **Airflow UI**: use k9s or cmd to port forward airflow api-server to localhost:8081 (admin/admin)
+- **MinIO Console**: http://localhost:9001 (minio_access_key/minio_secret_key)
+- **Trino**: http://localhost:8080
+- **Kafka**: localhost:9092
 
-In depth documentation will be provided after the project is complete
+## Troubleshooting
+```bash
+# Check Airflow logs
+kubectl logs -n airflow -l component=scheduler
+
+# Check Spark job status
+kubectl describe sparkapplication <job-name> -n airflow
+
+# Check pod logs
+kubectl logs <pod-name> -n airflow
+
+# Restart Airflow
+helm upgrade dev-release apache-airflow/airflow --namespace airflow
+
+# Clean up
+docker compose down -v
+helm uninstall dev-release -n airflow
+kubectl delete namespace airflow spark-operator
+```
 
 Description for completed Project:
 - Data lakehouse for multi purpose use cases
