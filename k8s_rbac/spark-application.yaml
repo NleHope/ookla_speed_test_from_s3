@@ -1,0 +1,54 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: ookla-transform-job
+  namespace: default
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: "spark-s3:latest"
+  imagePullPolicy: Never
+  mainApplicationFile: local:///opt/spark/app/cleaning.py
+  arguments:
+    - "s3a://bronze/pump/"
+    - "s3a://silver/pump/"
+  sparkVersion: "3.5.1"
+  restartPolicy:
+    type: Never
+  driver:
+    cores: 1
+    coreLimit: "1200m"
+    memory: "2g"
+    labels:
+      version: "3.5.1"
+      spark-app-name: ookla-transform-job
+    serviceAccount: spark
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: "minio_access_key"
+      - name: AWS_SECRET_ACCESS_KEY
+        value: "minio_secret_key"
+  executor:
+    cores: 1
+    instances: 2
+    memory: "2g"
+    labels:
+      version: "3.5.1"
+      spark-app-name: ookla-transform-job
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: "minio_access_key"
+      - name: AWS_SECRET_ACCESS_KEY
+        value: "minio_secret_key"
+  sparkConf:
+    "spark.hadoop.fs.s3a.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    "spark.hadoop.fs.s3a.endpoint": "http://host.docker.internal:9000"
+    "spark.hadoop.fs.s3a.access.key": "minio_access_key"
+    "spark.hadoop.fs.s3a.secret.key": "minio_secret_key"
+    "spark.hadoop.fs.s3a.path.style.access": "true"
+    "spark.hadoop.fs.s3a.connection.ssl.enabled": "false"
+    "spark.sql.adaptive.enabled": "true"
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+    "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension"
+    "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog"

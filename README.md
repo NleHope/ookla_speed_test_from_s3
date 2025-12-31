@@ -1,25 +1,28 @@
 THIS PROJECT IS STILL WIP
 
-Project: modern data platform \n
-Commit 2
+Project: modern data platform 
+Commit 3
 Architecture overview
-<img width="1807" height="1040" alt="Screenshot from 2025-12-18 17-55-17" src="https://github.com/user-attachments/assets/cedb8ff5-c44f-485f-8788-442d1fd1b6e0" />
+![Architecture](./imgs/dataplatform_archi.png)
+
 
 
 To do: 
 - Add data govern
 - Add data validation logic
-- Add table format
+- Fix airflow logs not shown on airflow UI
+- Fix table format write fails
 
 # Local Lakehouse + Spark on Minikube
 
 ## Prerequisites
 Ensure your system has:
 - Docker
-- Minikube (local Kubernetes)
-- Python 3.12+
-
-Spark will be built into a Docker image and run on Minikube.
+- Kubernetes (Use kubernetes cluster created by Docker Desktop or Minikube or Kind)
+- Python 3.12
+- Helm
+- Airflow deployed on K8s with Helm 
+- Spark operator deployed on k8s with Helm
 
 ---
 
@@ -37,25 +40,22 @@ pip install -r requirements.txt
 ## Starting data lakehouse and minikube cluster
 ```bash
 docker compose up -d
-minikube start
 ```
+Go to docker desktop and create a K8s cluster
+
 ##Build docker image and push it to minikube cluster
 ```bash
-eval $(minikube docker-env)
-docker build -t spark-s3:latest .
+
 ```
 ##Submit spark job on k8s for data processing
 ```bash
 kubectl apply -f spark-rbac.yaml
 
-kubectl apply -f spark-transform-job.yaml
 ```
-Description:
+Description for completed Project:
 - Data lakehouse for multi purpose use cases
 
+![Full Architecture](./imgs/full_project_vision.png)
 
 
-Finished platform architecture:
-
-<img width="2439" height="1194" alt="image" src="https://github.com/user-attachments/assets/08e91ed7-42a9-4a90-9f28-ab5d51eea897" />
 

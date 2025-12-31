@@ -1,5 +1,5 @@
 data:
-  folder_path: /mnt/nvme_data/Work/ookla-internet-speed-dataset
+  folder_path: /mnt/nvme_data_ntfs/Work/ookla-internet-speed-dataset
   
 
 datalake:

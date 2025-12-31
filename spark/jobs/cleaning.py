@@ -407,13 +407,18 @@ class OoklaTransformJob:
                 "data_quality_score"
             ).show(10, truncate=False)
             
-            # Write with partitioning
+            # Write as Delta Lake table with partitioning
+            logger.info(f"Writing Delta table to: {silver_path}")
             df_final.write \
+                .format("delta") \
                 .mode("overwrite") \
                 .partitionBy("partition_year", "partition_month") \
-                .parquet(silver_path)
+                .option("overwriteSchema", "true") \
+                .option("delta.logRetentionDuration", "interval 30 days") \
+                .option("delta.deletedFileRetentionDuration", "interval 7 days") \
+                .save(silver_path)
             
-            logger.info("✅ Data successfully written to Silver layer!")
+            logger.info("✅ Data successfully written to Silver layer as Delta Lake table!")
             
             # 8. Calculate and log statistics
             self.log_statistics(df_bronze, df_final)
@@ -468,23 +473,31 @@ class OoklaTransformJob:
 
 def create_spark_session():
     """
-    Create and configure Spark session for K8s execution
+    Create and configure Spark session for K8s execution with Delta Lake support
     """
-    spark = SparkSession.builder \
+    from delta import configure_spark_with_delta_pip
+    
+    builder = SparkSession.builder \
         .appName("Ookla-Transform-Bronze-to-Silver") \
         .config("spark.jars.packages", ",".join([
             "org.apache.hadoop:hadoop-aws:3.3.4",
-            "com.amazonaws:aws-java-sdk-bundle:1.12.262"
+            "com.amazonaws:aws-java-sdk-bundle:1.12.262",
+            "io.delta:delta-spark_2.12:3.1.0"
         ])) \
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
         .config("spark.hadoop.fs.s3a.path.style.access", "true") \
         .config("spark.hadoop.fs.s3a.connection.ssl.enabled", "false") \
         .config("spark.sql.adaptive.enabled", "true") \
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true") \
-        .getOrCreate()
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+    
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
     
     # Set log level
     spark.sparkContext.setLogLevel("INFO")
+    
+    logger.info("✅ Spark session created with Delta Lake support")
     
     return spark
 

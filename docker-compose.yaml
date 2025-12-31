@@ -1,4 +1,4 @@
-version: "3.9"
+
 services:
   # Distributed query engine for various types
   # of data sources
@@ -98,8 +98,8 @@ services:
       MINIO_SECRET_KEY: minio_secret_key
     command: server --console-address ":9001" /data
   kafka:
-    images: confluentinc/cp-kafka:7.6.0
-    hostnam: kafka
+    image: confluentinc/cp-kafka:7.6.0
+    hostname: kafka
     container_name: ookla-kafka-kraft
     ports:
       - "9092:9092"

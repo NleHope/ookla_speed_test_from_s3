@@ -10,3 +10,64 @@ postgresql:
     database: airflow
 
 executor: KubernetesExecutor
+
+# Custom Airflow image with DAGs
+images:
+  airflow:
+    repository: custom-airflow
+    tag: latest
+    pullPolicy: Never
+
+# Disable git-sync since DAGs are in the image
+dags:
+  gitSync:
+    enabled: false
+
+# Scheduler needs Docker and kubectl access to build images and submit jobs
+scheduler:
+  extraVolumes:
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+    - name: kubeconfig
+      hostPath:
+        path: /Users/nghia/.kube
+  extraVolumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+    - name: kubeconfig
+      mountPath: /home/airflow/.kube
+      readOnly: true
+
+# Workers (KubernetesExecutor pods) also need same access
+workers:
+  extraVolumes:
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+    - name: kubeconfig
+      hostPath:
+        path: /Users/nghia/.kube
+  extraVolumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+    - name: kubeconfig
+      mountPath: /home/airflow/.kube
+      readOnly: true
+
+# Configure persistent logging to avoid pod log fetching issues
+logs:
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Environment variables for log configuration
+env:
+  - name: AIRFLOW__LOGGING__REMOTE_LOGGING
+    value: "False"
+  - name: AIRFLOW__LOGGING__LOG_FETCH_TIMEOUT_SEC
+    value: "10"
+  - name: AIRFLOW__KUBERNETES__DELETE_WORKER_PODS
+    value: "False"
+  - name: AIRFLOW__KUBERNETES__DELETE_WORKER_PODS_ON_FAILURE
+    value: "False"

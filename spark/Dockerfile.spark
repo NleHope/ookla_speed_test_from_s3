@@ -5,15 +5,20 @@ USER root
 RUN pip install --no-cache-dir \
     pyspark==3.5.1 \
     pandas \
-    reverse_geocoder
+    reverse_geocoder \
+    delta-spark==3.1.0
 
 # ------------------------------------------------------------
-# Cài thêm các thư viện Hadoop + AWS SDK + PostgreSQL JDBC
+# Cài thêm các thư viện Hadoop + AWS SDK + Delta Lake + PostgreSQL JDBC
 # ------------------------------------------------------------
 RUN curl -L https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar \
         -o /opt/spark/jars/hadoop-aws-3.3.4.jar && \
     curl -L https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.262/aws-java-sdk-bundle-1.12.262.jar \
         -o /opt/spark/jars/aws-java-sdk-bundle-1.12.262.jar && \
+    curl -L https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.1.0/delta-spark_2.12-3.1.0.jar \
+        -o /opt/spark/jars/delta-spark_2.12-3.1.0.jar && \
+    curl -L https://repo1.maven.org/maven2/io/delta/delta-storage/3.1.0/delta-storage-3.1.0.jar \
+        -o /opt/spark/jars/delta-storage-3.1.0.jar && \
     curl -L https://jdbc.postgresql.org/download/postgresql-42.7.1.jar \
         -o /opt/spark/jars/postgresql-42.7.1.jar && \
     chmod 644 /opt/spark/jars/*.jar

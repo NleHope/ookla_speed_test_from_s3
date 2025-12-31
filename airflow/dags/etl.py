@@ -61,33 +61,21 @@ build_spark_image = BashOperator(
     set -e
     echo "Building Spark Docker image with S3 dependencies..."
     cd /opt/airflow
-    docker build -f Dockerfile.spark -t spark-s3:latest .
+    docker build -f spark/Dockerfile.spark -t spark-s3:latest .
     echo "✓ Image built successfully"
     docker images | grep spark-s3
     """,
     dag=dag,
 )
 
-# Task 2: Load Image to Minikube
-load_image_to_minikube = BashOperator(
-    task_id='load_image_to_minikube',
+# Task 2: Verify Spark Image (Docker Desktop - no need to load separately)
+verify_spark_image = BashOperator(
+    task_id='verify_spark_image',
     bash_command="""
     set -e
-    echo "Loading image to Minikube's Docker registry..."
-    
-    # Save image to tar file
-    docker save spark-s3:latest -o /tmp/spark-s3-latest.tar
-    
-    # Load into Minikube
-    minikube image load /tmp/spark-s3-latest.tar
-    
-    # Verify image is in Minikube
-    minikube image ls | grep spark-s3 || echo "Warning: Image not found in Minikube"
-    
-    # Cleanup
-    rm -f /tmp/spark-s3-latest.tar
-    
-    echo "✓ Image loaded to Minikube successfully"
+    echo "Verifying Spark image is available..."
+    docker images | grep spark-s3
+    echo "✓ Spark image is ready"
     """,
     dag=dag,
 )
@@ -97,12 +85,60 @@ apply_k8s_rbac = BashOperator(
     task_id='apply_k8s_rbac',
     bash_command="""
     set -e
-    echo "Applying Kubernetes RBAC for Spark..."
-    kubectl apply -f /opt/airflow/k8s/spark-rbac.yaml
-    echo "✓ RBAC applied successfully"
+    echo "==================================="
+    echo "Applying Kubernetes RBAC for Spark"
+    echo "==================================="
+    
+    # Check if RBAC file exists
+    if [ ! -f /opt/airflow/k8s_rbac/spark-rbac.yaml ]; then
+        echo "❌ Error: spark-rbac.yaml not found at /opt/airflow/k8s_rbac/spark-rbac.yaml"
+        exit 1
+    fi
+    
+    echo "✓ RBAC file found"
+    
+    # Apply RBAC (idempotent operation)
+    echo "Applying RBAC configuration..."
+    if kubectl apply -f /opt/airflow/k8s_rbac/spark-rbac.yaml; then
+        echo "✓ RBAC applied successfully"
+    else
+        echo "❌ Failed to apply RBAC"
+        exit 1
+    fi
     
     # Verify service account
-    kubectl get serviceaccount spark -n default
+    echo ""
+    echo "Verifying Spark service account..."
+    if kubectl get serviceaccount spark -n default > /dev/null 2>&1; then
+        echo "✓ Spark serviceaccount exists"
+        kubectl get serviceaccount spark -n default
+    else
+        echo "❌ Warning: spark serviceaccount not found"
+        exit 1
+    fi
+    
+    # Verify role
+    echo ""
+    echo "Verifying Spark role..."
+    if kubectl get role spark-role -n default > /dev/null 2>&1; then
+        echo "✓ Spark role exists"
+    else
+        echo "❌ Warning: spark-role not found"
+    fi
+    
+    # Verify role binding
+    echo ""
+    echo "Verifying Spark role binding..."
+    if kubectl get rolebinding spark-role-binding -n default > /dev/null 2>&1; then
+        echo "✓ Spark role binding exists"
+    else
+        echo "❌ Warning: spark-role-binding not found"
+    fi
+    
+    echo ""
+    echo "==================================="
+    echo "✓ RBAC setup completed successfully"
+    echo "==================================="
     """,
     dag=dag,
 )
@@ -121,7 +157,7 @@ submit_spark_job = BashOperator(
     sleep 5
     
     # Apply the Spark job
-    kubectl apply -f /opt/airflow/k8s/spark-transform-job.yaml
+    kubectl apply -f /opt/airflow/k8s_rbac/spark-application.yaml
     
     echo "✓ Spark job submitted successfully"
     
@@ -205,5 +241,5 @@ cleanup_spark_job = BashOperator(
 )
 
 # Task Dependencies
-build_spark_image >> load_image_to_minikube >> apply_k8s_rbac >> submit_spark_job
+build_spark_image >> verify_spark_image >> apply_k8s_rbac >> submit_spark_job
 submit_spark_job >> wait_for_spark_job >> get_spark_logs >> cleanup_spark_job

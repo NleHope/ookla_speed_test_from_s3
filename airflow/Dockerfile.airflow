@@ -2,7 +2,7 @@
 # This image extends the official Airflow image to add tools needed
 # for submitting Spark jobs to Kubernetes (Minikube) from Airflow
 
-FROM apache/airflow:3.1.5
+FROM apache/airflow:3.0.2
 
 USER root
 
@@ -44,8 +44,19 @@ RUN groupadd -g 999 docker || true && \
 
 USER airflow
 
-# Install Airflow providers for Kubernetes
+# Install Airflow providers for Kubernetes (use compatible version for Airflow 3.0)
 RUN pip install --no-cache-dir \
-    apache-airflow-providers-cncf-kubernetes==8.5.0
+    apache-airflow-providers-cncf-kubernetes>=10.0.0 \
+    minio
+
+COPY --chown=airflow:root ./requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 WORKDIR /opt/airflow
+
+# Copy DAGs, plugins, and other files
+COPY --chown=airflow:root ./airflow/dags /opt/airflow/dags
+COPY --chown=airflow:root ./plugins /opt/airflow/plugins
+COPY --chown=airflow:root ./k8s_rbac /opt/airflow/k8s_rbac
+COPY --chown=airflow:root ./spark /opt/airflow/spark
+COPY --chown=airflow:root ./conf /opt/airflow/conf
