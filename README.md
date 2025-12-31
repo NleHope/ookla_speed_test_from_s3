@@ -1,10 +1,11 @@
 THIS PROJECT IS STILL WIP
 
 Project: modern data platform 
+
 Commit 3
+
 Architecture overview
 ![Architecture](./imgs/dataplatform_archi.png)
-
 
 
 To do: 
@@ -37,19 +38,15 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Starting data lakehouse and minikube cluster
+## Starting data lakehouse and kubernetes cluster
 ```bash
 docker compose up -d
 ```
 Go to docker desktop and create a K8s cluster
 
-##Build docker image and push it to minikube cluster
-```bash
 
-```
-##Submit spark job on k8s for data processing
-```bash
-kubectl apply -f spark-rbac.yaml
+
+In depth documentation will be provided after the project is complete
 
 ```
 Description for completed Project:
