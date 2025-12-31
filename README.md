@@ -11,6 +11,7 @@ Architecture overview
 
 
 To do: 
+- Add create silver and gold bucket if not exist scripts
 - Add data govern
 - Add data validation logic
 - Fix airflow logs not shown on airflow UI

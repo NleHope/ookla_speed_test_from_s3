@@ -11,10 +11,22 @@ metadata:
   namespace: default
 rules:
 - apiGroups: [""]
-  resources: ["pods", "services", "configmaps", "persistentvolumeclaims"]
+  resources: ["pods"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
 - apiGroups: [""]
   resources: ["pods/log"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete", "deletecollection"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["secrets"]
   verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
