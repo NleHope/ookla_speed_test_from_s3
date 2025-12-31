@@ -28,7 +28,7 @@ To do:
 - Python 3.12+
 - Helm 3.x
 - kubectl
-- ![Dataset](https://www.kaggle.com/datasets/dhruvildave/ookla-internet-speed-dataset) : parquet format
+- [Dataset](https://www.kaggle.com/datasets/dhruvildave/ookla-internet-speed-dataset) : parquet format
 
 ## Variables 
 stored in ./utils/config.yaml
