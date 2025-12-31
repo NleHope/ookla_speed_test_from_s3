@@ -10,6 +10,8 @@ Architecture overview
 ![Architecture](./imgs/dataplatform_archi.png)
 
 
+
+
 To do: 
 - Add create silver and gold bucket if not exist scripts
 - Add data govern
@@ -25,6 +27,14 @@ To do:
 - Python 3.12+
 - Helm 3.x
 - kubectl
+
+## Variables 
+stored in ./utils/config.yaml
+
+*note: remember to change data path in ./utils/config.yaml for testing purposes
+
+*note: remember to create silver/pump path in MinIO because my scripts didnt have that yet
+
 
 ## Quick Start
 
