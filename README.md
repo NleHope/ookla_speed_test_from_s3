@@ -48,7 +48,6 @@ Go to docker desktop and create a K8s cluster
 
 In depth documentation will be provided after the project is complete
 
-```
 Description for completed Project:
 - Data lakehouse for multi purpose use cases
 
