@@ -1,6 +1,6 @@
 THIS PROJECT IS STILL WIP
 
-Project: modern data platform 
+Project: Data lakehouse for big data processing and streaming data processing
 
 Commit 3
 
