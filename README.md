@@ -14,7 +14,7 @@ To do:
 - Fix airflow logs not shown on airflow UI
 - Fix table format write fails
 
-# Local Lakehouse + Spark on Minikube
+# Data lakehouse with data processing engine and orchestration on kubernetes
 
 ## Prerequisites
 Ensure your system has:
