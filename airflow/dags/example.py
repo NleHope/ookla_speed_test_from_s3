@@ -13,7 +13,7 @@ with DAG(
     description="Basic DAG to verify Airflow is running",
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
-    schedule_interval="@once",   # chạy đúng 1 lần
+    schedule="@once",   # chạy đúng 1 lần
     catchup=False,
     tags=["test", "sanity"],
 ) as dag:

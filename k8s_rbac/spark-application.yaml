@@ -19,10 +19,10 @@ spec:
   driver:
     cores: 1
     coreLimit: "1200m"
-    memory: "2g"
+    memory: "1g"
     labels:
       version: "3.5.1"
-      spark-app-name: ookla-transform-job
+      app: ookla-transform-job
     serviceAccount: spark
     env:
       - name: AWS_ACCESS_KEY_ID
@@ -31,11 +31,11 @@ spec:
         value: "minio_secret_key"
   executor:
     cores: 1
-    instances: 2
-    memory: "2g"
+    instances: 1
+    memory: "1g"
     labels:
       version: "3.5.1"
-      spark-app-name: ookla-transform-job
+      app: ookla-transform-job
     env:
       - name: AWS_ACCESS_KEY_ID
         value: "minio_access_key"

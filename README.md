@@ -1,5 +1,7 @@
 THIS PROJECT IS STILL WIP
 
+For legitimacy, please check ./imgs folder to see my current works
+
 Project: Data lakehouse for big data processing and streaming data processing
 
 Commit 3
